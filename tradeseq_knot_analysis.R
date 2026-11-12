@@ -38,6 +38,8 @@ sce <- readRDS("SCE_fitted_Sorghum_Xy_Phl_TA_SubsetTradeseq.rds")
 
 cat("Loading original Seurat object...\n")
 seu <- readRDS("SC_Sorghum_Xy_Phl_TA_Subset.rds")
+stopifnot(setequal(colnames(sce), colnames(seu)),
+          identical(metadata(sce)$sorghum_analysis, seu@misc$sorghum_analysis))
 
 cd      <- as.data.frame(colData(sce))
 pt_cols <- grep("^crv\\.pseudotime\\.",  names(cd), value = TRUE)
@@ -47,6 +49,8 @@ pt  <- as.matrix(cd[, pt_cols, drop = FALSE])
 wts <- as.matrix(cd[, wt_cols, drop = FALSE])
 colnames(pt)  <- sub("^crv\\.pseudotime\\.",  "", colnames(pt))
 colnames(wts) <- sub("^crv\\.cellWeights\\.", "", colnames(wts))
+stopifnot(identical(colnames(pt), paste0("Lineage", 1:4)),
+          identical(colnames(wts), paste0("Lineage", 1:4)))
 
 cat("Pseudotime columns:", colnames(pt), "\n")
 cat("Cells per lineage (weight > 0.5):", colSums(wts > 0.5), "\n")

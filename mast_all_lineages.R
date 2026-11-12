@@ -41,14 +41,12 @@ export_plot <- function(p, base, w, h) {
   cat(sprintf("  saved: %s\n", base))
 }
 
-if (!exists("sce")) {
-  cat("Loading fitted tradeSeq SCE...\n")
-  sce <- readRDS("SCE_fitted_Sorghum_Xy_Phl_TA_SubsetTradeseq.rds")
-}
-if (!exists("seu")) {
-  cat("Loading Seurat subset...\n")
-  seu <- readRDS("SC_Sorghum_Xy_Phl_TA_Subset.rds")
-}
+cat("Loading fitted tradeSeq SCE...\n")
+sce <- readRDS("SCE_fitted_Sorghum_Xy_Phl_TA_SubsetTradeseq.rds")
+cat("Loading Seurat subset...\n")
+seu <- readRDS("SC_Sorghum_Xy_Phl_TA_Subset.rds")
+stopifnot(setequal(colnames(sce), colnames(seu)),
+          identical(metadata(sce)$sorghum_analysis, seu@misc$sorghum_analysis))
 DefaultAssay(seu) <- "RNA"
 if (inherits(seu[["RNA"]], "Assay5") && length(Layers(seu[["RNA"]], search = "data")) > 1) {
   cat("Joining Seurat v5 layers...\n"); seu <- JoinLayers(seu)
@@ -56,6 +54,8 @@ if (inherits(seu[["RNA"]], "Assay5") && length(Layers(seu[["RNA"]], search = "da
 
 cd  <- as.data.frame(colData(sce))
 wts <- as.matrix(cd[, grep("^crv\\.cellWeights\\.", names(cd)), drop = FALSE])
+stopifnot(identical(sub("^crv\\.cellWeights\\.", "", colnames(wts)),
+                    paste0("Lineage", 1:4)))
 shared <- intersect(colnames(seu), rownames(wts))
 cl <- as.character(seu$seurat_clusters); names(cl) <- colnames(seu)
 
